@@ -102,6 +102,16 @@ def print_start_dashboard():
     print("  2. Start a new independent task.")
     print("="*70 + "\n")
 
+def find_protocol_file(name):
+    name_lower = name.lower()
+    for root, dirs, files in os.walk(WORK_DIR):
+        # Skip hidden and cache folders to avoid performance issues
+        dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ('venv', 'env', 'node_modules', 'BACKUPS', '2026-Backup')]
+        for f in files:
+            if f.lower() == name_lower:
+                return os.path.join(root, f)
+    return None
+
 def generate_brief(task_id, raw_desc):
     facts = load_memory_facts()
     print("\n" + "="*70)
@@ -127,6 +137,40 @@ def generate_brief(task_id, raw_desc):
         context_tags.append("RADAR MODEL")
         ips.append(facts.get("radar_ip", "192.168.1.52"))
         
+    # Dynamic Protocol Mapping: checks if any word in the task description matches a markdown file in the workspace
+    words = re.findall(r'\b\w+\b', lower_desc)
+    for word in words:
+        # Skip small words or standard keywords to avoid noise
+        if len(word) < 3 or word in ('and', 'the', 'for', 'run', 'ssh', 'key', 'bot', 'run'):
+            continue
+        for ext in ['.md', '_protocol.md']:
+            fn = word.lower() + ext
+            proto_path = find_protocol_file(fn)
+            if proto_path and os.path.exists(proto_path):
+                tag = f"{word.upper()} PROTOCOL"
+                if tag not in context_tags:
+                    context_tags.append(tag)
+                    try:
+                        with open(proto_path, 'r', encoding='utf-8') as pf:
+                            first_line = ""
+                            for _ in range(15):
+                                line = pf.readline().strip()
+                                if line and not line.startswith('>') and not line.startswith('#'):
+                                    first_line = line
+                                    break
+                            # If no plain line, get first heading
+                            if not first_line:
+                                pf.seek(0)
+                                for line in pf:
+                                    if line.startswith('#'):
+                                        first_line = line.strip('# \t\n')
+                                        break
+                        if first_line:
+                            warnings.append(f"Rules enforced from {os.path.basename(proto_path)}: {first_line}")
+                    except Exception:
+                        pass
+                break
+                    
     print(f"🔍 Alınan Görev:  {raw_desc}")
     print(f"🏷️ Tespit Edilen Bağlam: {', '.join(context_tags) if context_tags else 'GENEL GÖREV'}")
     

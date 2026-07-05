@@ -11,6 +11,19 @@ While AI coding agents possess vast generation capabilities, they often suffer f
 
 ---
 
+## 💡 Developer Pain Points vs. Graviton Solutions
+
+| 🛑 Developer Pain Point | 🛡️ Graviton Solution |
+| :--- | :--- |
+| **Agent Hallucinations & Broken Deployments:** AI agent claims task is done, but the code has syntax errors or fails basic functions. | **Zero-Trust AST Syntax Guard & TDD Quality Gates:** Automatically checks syntax on modified files using AST parsing and blocks execution until all verification scripts return `PASS`. |
+| **Workspace Context Pollution:** Large workspaces with multiple projects cause agents to mix up code, variables, and server IPs. | **Keyword-Triggered Sandboxed Isolation:** Dynamically scans the workspace and injects only the relevant project rules/files (e.g. `drom.md`, `pelin.md`) into the active prompt based on keywords. |
+| **Session Dementia (Lost State):** Switching models (Gemini, Claude, DeepSeek) or restarting LLM sessions wipes the agent's memory of past runs. | **Persistent Local Memory SQLite DB:** Stores execution states, lesson logs, and server facts locally in SQLite. The next session picks up exactly where the last one left off. |
+| **Manual Project Overhead:** Manually typing setup commands, reading roadmap files, and managing multi-step pipelines. | **Automated Roadmap parsing & CLI Harness:** Auto-parses standard roadmap markdown files (like `project.md`, `tasks.md`, `DEVAM.md`) and compiles a unified dashboard menu. |
+| **Multi-Agent Handover Failure:** Disconnected sub-agents lose alignment on instructions and execution strategies. | **Unified Briefing & Debriefing Protocols:** Generates a zero-ambiguity task brief before execution and triggers a validation walkthrough report upon completion. |
+| **Static Coding Habits:** Agents repeat the same mistakes or ignore environment-specific developer preferences. | **Self-Evolution Fact Engine:** Learns from user habits and stores optimizations and warning facts dynamically in `agent_memory.db` for future prompts. |
+
+---
+
 ## 📊 Architecture & Task Flow
 
 GitHub natively supports Mermaid diagrams. Here is how **Graviton** orchestrates the agent's workspace lifecycle:
@@ -19,7 +32,7 @@ GitHub natively supports Mermaid diagrams. Here is how **Graviton** orchestrates
 graph TD
     User([👤 User]) -->|1. START Command| Agent[🤖 Antigravity Agent]
     Agent -->|Trigger| StartCmd[python orchestrator.py start]
-    StartCmd -->|Parse DEVAM.md & DB| Options[📋 Active Tasks & Roadmap Menu]
+    StartCmd -->|Parse project.md & DB| Options[📋 Active Tasks & Roadmap Menu]
     Options --> Agent
     Agent -->|Presents Menu| User
     
@@ -77,13 +90,13 @@ google-antigravity-atfe/
 ### Method A: Direct CLI Installation (Recommended)
 You can install Graviton directly using the Antigravity CLI:
 ```bash
-agy plugin install github.com/CeyhunCCC/google-antigravity-atfe
+agy plugin install github.com/SermoLibertas/antigravity-graviton
 ```
 
 ### Method B: Local Integration (IDE Development Mode)
 1.  Clone the repository to your local machine:
     ```bash
-    git clone https://github.com/CeyhunCCC/google-antigravity-atfe.git
+    git clone https://github.com/SermoLibertas/antigravity-graviton.git
     ```
 2.  Open **Google Antigravity IDE**.
 3.  Go to `Settings > Customizations > Build with Google Plugins`.
@@ -97,7 +110,7 @@ agy plugin install github.com/CeyhunCCC/google-antigravity-atfe
 
 ## 📖 How It Works: The Execution Loop
 
-1.  **Start:** The user initiates a session by saying `START`. The orchestrator lists pending roadmap items from `DEVAM.md`.
+1.  **Start:** The user initiates a session by saying `START`. The orchestrator lists pending roadmap items from `project.md` / `DEVAM.md`.
 2.  **Define:** The agent plans the execution steps and registers them with AEE verifier scripts using `orchestrator.py define`.
 3.  **Run:** The agent runs steps sequentially using `harness.py run-next`.
 4.  **Verify & Block:** If a step's command fails or its verifier test returns `FAIL`, the task enters `BLOCKED` state. The agent must correct the error and re-run before proceeding.

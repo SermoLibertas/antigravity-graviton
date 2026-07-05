@@ -1,6 +1,6 @@
 # Antigravity Graviton 🪐
 
-![Antigravity Graviton Banner](graviton_banner.png)
+![Antigravity Graviton Banner](graviton_banner_lego.png)
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Platform](https://img.shields.io/badge/Platform-Google_Antigravity-orange.svg)](#)

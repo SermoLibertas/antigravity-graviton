@@ -10,18 +10,25 @@ ENGINE_DIR = os.path.dirname(os.path.abspath(__file__))
 WORK_DIR = os.path.dirname(ENGINE_DIR) # CCCWorkscape
 DB_PATH = os.path.join(ENGINE_DIR, "agent_engine.db")
 MEMORY_DB_PATH = os.path.join(WORK_DIR, ".memory", "agent_memory.db")
-DEVAM_PATH = os.path.join(WORK_DIR, "DEVAM.md")
+def get_roadmap_path():
+    possible_names = ["project.md", "ROADMAP.md", "tasks.md", "DEVAM.md"]
+    for name in possible_names:
+        p = os.path.join(WORK_DIR, name)
+        if os.path.exists(p):
+            return p, name
+    return os.path.join(WORK_DIR, "project.md"), "project.md"
 
-def parse_devam_tasks():
+def parse_roadmap_tasks():
     tasks = []
-    if not os.path.exists(DEVAM_PATH):
+    roadmap_path, _ = get_roadmap_path()
+    if not os.path.exists(roadmap_path):
         return tasks
     try:
-        with open(DEVAM_PATH, 'r', encoding='utf-8') as f:
+        with open(roadmap_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # Match tasks under the target header
-        match = re.search(r"## 🎯 SONRAKİ GÖREVLER.*?\n(.*?)(?:\n##|\Z)", content, re.DOTALL)
+        # Match tasks under the target header (Turkish or English)
+        match = re.search(r"## 🎯 (?:SONRAKİ GÖREVLER|NEXT TASKS|TASKS|ROADMAP).*?\n(.*?)(?:\n##|\Z)", content, re.IGNORECASE | re.DOTALL)
         if match:
             lines = match.group(1).strip().split('\n')
             for line in lines:
@@ -33,7 +40,7 @@ def parse_devam_tasks():
                     desc = line[5:].strip()
                     tasks.append((desc, status))
     except Exception as e:
-        print(f"[-] Orchestrator: Error parsing DEVAM.md: {e}")
+        print(f"[-] Orchestrator: Error parsing roadmap file: {e}")
     return tasks
 
 def load_memory_facts():
@@ -56,20 +63,21 @@ def print_start_dashboard():
     print(" ANTIGRIVITY TASK-FLOW ENGINE (ATFE) - START MENU")
     print("="*70)
     
-    # 1. Parse DEVAM.md Tasks
-    devam_tasks = parse_devam_tasks()
-    print("🎯 DEVAM.md Sonraki Görevler Listesi:")
+    # 1. Parse Roadmap Tasks
+    _, roadmap_name = get_roadmap_path()
+    devam_tasks = parse_roadmap_tasks()
+    print(f"🎯 Roadmap ({roadmap_name}) Next Tasks List:")
     if devam_tasks:
         for i, (desc, status) in enumerate(devam_tasks, 1):
             status_symbol = "⏳ PENDING" if status == "PENDING" else "🔄 RUNNING" if status == "RUNNING" else "✅ COMPLETED"
             print(f"  [{i}] {desc} ({status_symbol})")
     else:
-        print("  (DEVAM.md üzerinde bekleyen görev bulunamadı.)")
+        print(f"  (No pending tasks found in {roadmap_name} under tasks header.)")
         
     print("-"*70)
     
     # 2. Check Engine Tasks Status
-    print("🗄️ AEE Veritabanı Aktif Görevler (agent_engine.db):")
+    print("🗄️ AEE Database Active Tasks (agent_engine.db):")
     if os.path.exists(DB_PATH):
         try:
             conn = sqlite3.connect(DB_PATH)
@@ -81,17 +89,17 @@ def print_start_dashboard():
                     status_emoji = "🟢" if status == "COMPLETED" else "🔴" if status == "BLOCKED" else "🔵"
                     print(f"  Task ID {tid}: {status_emoji} {title} ({status})")
             else:
-                print("  (Veritabanında kayıtlı görev bulunmamaktadır.)")
+                print("  (No tasks registered in database.)")
             conn.close()
         except Exception as e:
-            print(f"  [-] Veritabanı sorgu hatası: {e}")
+            print(f"  [-] Database query error: {e}")
     else:
-        print("  (AEE Veritabanı henüz oluşturulmamış. 'harness.py init' çalıştırın.)")
+        print("  (AEE Database not created yet. Run 'harness.py init'.)")
         
     print("-"*70)
-    print("💡 Nasıl Devam Etmek İstersiniz?")
-    print("  1. Yukarıdaki görevlerden birini seçin (Örn: 'python .engine/harness.py start-task <title> <desc>')")
-    print("  2. Yeni bir bağımsız görev başlatın.")
+    print("💡 How would you like to proceed?")
+    print("  1. Select one of the tasks above (e.g. 'python .engine/harness.py start-task <title> <desc>')")
+    print("  2. Start a new independent task.")
     print("="*70 + "\n")
 
 def generate_brief(task_id, raw_desc):

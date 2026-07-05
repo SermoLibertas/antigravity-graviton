@@ -325,6 +325,31 @@ def run_pre_delivery_check(task_id):
     conn.close()
     return True
 
+def save_memory_fact(key, value):
+    try:
+        os.makedirs(os.path.dirname(MEMORY_DB_PATH), exist_ok=True)
+        conn = sqlite3.connect(MEMORY_DB_PATH)
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS facts (
+                key TEXT PRIMARY KEY,
+                value TEXT,
+                updated_at TEXT
+            )
+        """)
+        ts = datetime.now().isoformat()
+        cur.execute(
+            "INSERT OR REPLACE INTO facts (key, value, updated_at) VALUES (?, ?, ?)",
+            (key, value, ts)
+        )
+        conn.commit()
+        conn.close()
+        print(f"[+] Fact '{key}' saved successfully to memory database.")
+        return True
+    except Exception as e:
+        print(f"[-] Orchestrator: Error saving memory fact: {e}")
+        return False
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python orchestrator.py <command> [args...]")
@@ -332,6 +357,7 @@ if __name__ == "__main__":
         print("  start")
         print("  define <task_id> <raw_description>")
         print("  check <task_id>")
+        print("  add-fact <key> <value>")
         sys.exit(1)
         
     cmd = sys.argv[1].lower()
@@ -341,5 +367,7 @@ if __name__ == "__main__":
         generate_brief(int(sys.argv[2]), " ".join(sys.argv[3:]))
     elif cmd == "check" and len(sys.argv) >= 3:
         run_pre_delivery_check(int(sys.argv[2]))
+    elif cmd == "add-fact" and len(sys.argv) >= 4:
+        save_memory_fact(sys.argv[2], " ".join(sys.argv[3:]))
     else:
         print("[-] Invalid arguments.")

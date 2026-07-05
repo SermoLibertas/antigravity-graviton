@@ -1,11 +1,49 @@
 # Antigravity Graviton 🪐
 
+![Antigravity Graviton Banner](graviton_banner.png)
+
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Platform](https://img.shields.io/badge/Platform-Google_Antigravity-orange.svg)](#)
 
 **Antigravity Graviton** is a deterministic TDD (Test-Driven Development) governance harness and memory persistence plugin designed specifically for the **Google Antigravity** agentic IDE. 
 
 While AI coding agents possess vast generation capabilities, they often suffer from **"control-flow hallucinations"**—declaring a task complete or writing untested, syntax-broken code without verifying output validity. **Graviton** acts as the gravitational anchor, locking agents to reality through rigid TDD quality gates, runtime verification execution loops, and persistent session state memory.
+
+---
+
+## 📊 Architecture & Task Flow
+
+GitHub natively supports Mermaid diagrams. Here is how **Graviton** orchestrates the agent's workspace lifecycle:
+
+```mermaid
+graph TD
+    User([👤 User]) -->|1. START Command| Agent[🤖 Antigravity Agent]
+    Agent -->|Trigger| StartCmd[python orchestrator.py start]
+    StartCmd -->|Parse DEVAM.md & DB| Options[📋 Active Tasks & Roadmap Menu]
+    Options --> Agent
+    Agent -->|Presents Menu| User
+    
+    User -->|2-3. Task Selection / Prompt| Agent
+    Agent -->|Trigger| DefineCmd[python orchestrator.py define <id> <desc>]
+    DefineCmd -->|Query: agent_memory.db| KnowledgeEngine[🧠 Knowledge Engine: IP, SSH, Protocol & Warning Rules]
+    KnowledgeEngine -->|Generate| PlanPrompt[📝 Zero-Ambiguity Task Prompt & TDD Steps]
+    PlanPrompt --> Agent
+    
+    Agent -->|4-5. Register Steps| AEE_Harness[harness.py]
+    Agent -->|6. Run Step: run-next| AEE_Harness
+    AEE_Harness -->|Execute & Capture Logs| SQLite[(agent_engine.db)]
+    AEE_Harness -->|Evaluate Verifiers| Verifiers[verifiers.py]
+    Verifiers -->|PASS/FAIL| SQLite
+    
+    Agent -->|7. Pre-Delivery Audit| Checker[python orchestrator.py check <id>]
+    Checker -->|Validate Checklist & Outputs| Validation{All Steps Passed?}
+    Validation -->|NO| Block[🔴 Lock Task BLOCKED & Output Stderr/Syntax Errors]
+    Block --> Agent
+    Validation -->|YES| Complete[🟢 Lock Task COMPLETED & Generate Walkthrough]
+    Complete --> Agent
+    Agent -->|8. Memory Sync| Memory[Save Facts/Lessons to agent_memory.db]
+    Agent -->|Deliver Verified Results| User
+```
 
 ---
 

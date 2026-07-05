@@ -1,0 +1,32 @@
+name: "antigravity-task-flow-engine"
+version: "1.0.0"
+description: "TDD Governance and memory logs wrapper for Google Antigravity coding agents"
+entry_point: "orchestrator.py"
+
+# Custom tools exposed to the agent as MCP or direct CLI tools
+tools:
+  - name: "atfe_start"
+    description: "Parses DEVAM.md and prints the available active tasks menu"
+    command: "python orchestrator.py start"
+  - name: "atfe_define"
+    description: "Generates TDD execution plan and verifier expressions for a task"
+    command: "python orchestrator.py define {task_id} {raw_desc}"
+  - name: "atfe_check"
+    description: "Runs pre-delivery audits on all step statuses and outputs"
+    command: "python orchestrator.py check {task_id}"
+
+# Safety policies and event interception hooks
+hooks:
+  pre_task_start: "orchestrator.py start"
+  post_task_complete: "orchestrator.py check {task_id}"
+
+# Settings / Configuration schemas for the plugin
+settings:
+  memory_db_path:
+    type: "string"
+    default: "../.memory/agent_memory.db"
+    description: "Path to SQLite facts and optimizations memory database"
+  devam_file_path:
+    type: "string"
+    default: "../DEVAM.md"
+    description: "Path to the central DEVAM.md workspace roadmap"

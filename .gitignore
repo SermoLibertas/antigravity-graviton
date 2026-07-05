@@ -1,0 +1,12 @@
+# AEE Local Database
+agent_engine.db
+
+# Python Cache Files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local Test Files
+test_file.txt
+test_syntax.py
+*.log

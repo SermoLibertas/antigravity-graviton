@@ -1,0 +1,32 @@
+{
+  "name": "google-antigravity-atfe",
+  "version": "1.0.0",
+  "description": "Antigravity Task-Flow Engine (ATFE) for TDD Governance and memory loops",
+  "main": "src/orchestrator.py",
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:atfe.start"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "atfe.start",
+        "title": "ATFE: Start Session Menu",
+        "category": "Antigravity"
+      },
+      {
+        "command": "atfe.check",
+        "title": "ATFE: Pre-Delivery Checker",
+        "category": "Antigravity"
+      }
+    ],
+    "subagents": {
+      "executionEngine": {
+        "path": "src/harness.py",
+        "type": "harness"
+      }
+    }
+  },
+  "author": "Google Antigravity Community",
+  "license": "Apache-2.0"
+}
